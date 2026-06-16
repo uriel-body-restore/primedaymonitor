@@ -77,4 +77,176 @@
     <option value="US">🇺🇸 US</option>
     <option value="CA">🇨🇦 CA</option>
     <option value="UK">🇬🇧 UK</option>
-    <option
+    <option value="DE">🇩🇪 DE</option>
+  </select>
+  <label>Status:</label>
+  <select id="status-filter" onchange="render()">
+    <option value="all">All</option>
+    <option value="ok">Live & matching</option>
+    <option value="warn">Needs attention</option>
+    <option value="pending">Not checked</option>
+  </select>
+  <label>Search:</label>
+  <input type="text" id="search" placeholder="Product or ASIN..." oninput="render()" style="width:200px">
+  <button class="btn" onclick="resetAll()">Reset all checks</button>
+  <button class="btn primary" onclick="exportCSV()">Export log</button>
+</div>
+<div class="summary-bar" id="summary-bar"></div>
+<div class="last-updated" id="last-updated"></div>
+<div class="main" id="main"></div>
+<script>
+const MARKETPLACES = {
+  US: { flag: '🇺🇸', domain: 'amazon.com' },
+  CA: { flag: '🇨🇦', domain: 'amazon.ca' },
+  UK: { flag: '🇬🇧', domain: 'amazon.co.uk' },
+  DE: { flag: '🇩🇪', domain: 'amazon.de' },
+};
+const PRODUCTS = [
+  { mp:'US', cat:'Korean Face Masks', name:'Collagen Face Mask - Anti-Aging 5 Pack', asin:'B0F2D2XSH6', deal:'$8.49', max:'$8.49', note:'' },
+  { mp:'US', cat:'Korean Face Masks', name:'Collagen Face Mask - Glow 5 Pack', asin:'B0F2CWDCHZ', deal:'$8.49', max:'$8.49', note:'' },
+  { mp:'US', cat:'Korean Face Masks', name:'Bakuchiol Toner Pads (Featured)', asin:'B0F2CWRGXF', deal:'$13.59', max:'$13.59', note:'' },
+  { mp:'US', cat:'Korean Face Masks', name:'Niacinamide Cooling Jelly Toner Pads', asin:'B0F2CWSFKP', deal:'$13.59', max:'$13.59', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Whipped Beef Tallow Balm - Lavender', asin:'B0F3DJLKRC', deal:'$13.59', max:'$13.59', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Peppermint', asin:'B0F6MC1DS7', deal:'$11.89', max:'$11.89', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Manuka Honey', asin:'B0F6MCF63Y', deal:'$11.89', max:'$11.89', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Unscented', asin:'B0F6MSP8L8', deal:'$11.30', max:'$11.89', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Whipped Beef Tallow Balm - Eucalyptus (Featured)', asin:'B0F2CWB595', deal:'$8.07', max:'$8.49', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Whipped Beef Tallow Balm - Unscented', asin:'B0F2CSC7LG', deal:'$8.07', max:'$8.49', note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Bergamot', asin:'B0F6MB9MTN', deal:'$11.89', max:'$11.89', note:'' },
+  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Green Tea', asin:'B0DM3MM57G', deal:'$8.47', max:'$8.47', note:'' },
+  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Lavender', asin:'B0DM3B9F16', deal:'$8.47', max:'$8.47', note:'' },
+  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Unscented', asin:'B0DM3GPV9P', deal:'$8.47', max:'$8.47', note:'' },
+  { mp:'US', cat:'Eye Masks', name:'Eye Mask 30 Pack - Variety (Featured)', asin:'B0DM4222MV', deal:'$25.49', max:'$25.49', note:'' },
+  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Variety', asin:'B0DM2PZT88', deal:'$8.49', max:'$8.49', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Citrus', asin:'B689VN6FMS', deal:'$20.17', max:'$23.74', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Bloom', asin:'B0BJYCRSS1', deal:'$13.71', max:'$14.44', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Tea Tree', asin:'B68S6WZGCW', deal:'$21.24', max:'$21.24', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B68FDCLXNP', deal:'$19.93', max:'$20.99', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'$22.55', max:'$23.74', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Citrus (Men)', asin:'B68XBEN8DL', deal:'$13.71', max:'$14.44', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 30 Pack - Collectors Box', asin:'B68S6XG2GB', deal:'$47.63', max:'$50.14', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Rose', asin:'B68S79VN13', deal:'$21.24', max:'$21.24', note:'' },
+  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Clarity', asin:'B68JXRWWHX', deal:'$11.88', max:'$11.88', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Citrus', asin:'B089VN6FMS', deal:'CA$27.39', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B08BC88KG1', deal:'CA$27.39', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B08FDCLXNP', deal:'CA$27.39', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Tea Tree', asin:'B08S6WZGCW', deal:'CA$27.39', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 30 Pack - Collectors Box', asin:'B08S6XG2GB', deal:'CA$61.59', max:'CA$61.59', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Rose', asin:'B08S79VN13', deal:'CA$27.39', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Clarity', asin:'B0BJXRWWHX', deal:'CA$17.59', max:'CA$17.59', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Bloom', asin:'B0BJYCRS51', deal:'CA$17.99', max:'CA$17.99', note:'' },
+  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Citrus (Men)', asin:'B0BXBBN8DL', deal:'CA$15.83', max:'CA$15.83', note:'' },
+  { mp:'UK', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B68FDCLX9P', deal:'£16.99', max:'£16.99', note:'' },
+  { mp:'UK', cat:'Shower Steamers', name:'Shower Steamers 30 Pack - Collectors Box', asin:'B68S6XG2GB', deal:'£42.49', max:'£42.49', note:'' },
+  { mp:'UK', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'£14.38', max:'£14.95', note:'' },
+  { mp:'DE', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B68FDCLXNP', deal:'€15.29', max:'€15.29', note:'' },
+  { mp:'DE', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Citrus', asin:'B68XBEN8DL', deal:'€8.49', max:'€9.99', note:'⚠️ Inactive SKU' },
+  { mp:'DE', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'€15.29', max:'€15.29', note:'' },
+];
+let checks = {};
+try { checks = JSON.parse(localStorage.getItem('pd_checks_v2') || '{}'); } catch(e) {}
+function saveChecks() { try { localStorage.setItem('pd_checks_v2', JSON.stringify(checks)); } catch(e) {} }
+function getKey(p) { return p.mp + '_' + p.asin; }
+function getStatus(p) { const k = getKey(p); return checks[k] ? checks[k].status : 'pending'; }
+function amazonUrl(asin, mp) { return `https://www.${MARKETPLACES[mp].domain}/dp/${asin}`; }
+function markStatus(key, status, livePrice) {
+  checks[key] = { status, livePrice: livePrice || '', ts: new Date().toLocaleTimeString() };
+  saveChecks(); render(); updateLastUpdated();
+}
+function updateLastUpdated() {
+  const el = document.getElementById('last-updated');
+  const any = Object.values(checks).filter(c => c.ts);
+  if (any.length) el.textContent = 'Last check logged at ' + any[any.length-1].ts;
+}
+function resetAll() {
+  if (confirm('Reset all check statuses?')) { checks = {}; saveChecks(); render(); }
+}
+function filtered() {
+  const mp = document.getElementById('mp-filter').value;
+  const st = document.getElementById('status-filter').value;
+  const q = document.getElementById('search').value.toLowerCase();
+  return PRODUCTS.filter(p => {
+    if (mp !== 'all' && p.mp !== mp) return false;
+    if (st !== 'all' && getStatus(p) !== st) return false;
+    if (q && !p.name.toLowerCase().includes(q) && !p.asin.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+function renderSummary() {
+  const total = PRODUCTS.length;
+  const ok = PRODUCTS.filter(p => getStatus(p) === 'ok').length;
+  const warn = PRODUCTS.filter(p => getStatus(p) === 'warn').length;
+  const pending = PRODUCTS.filter(p => getStatus(p) === 'pending').length;
+  document.getElementById('summary-bar').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Total deals</div></div>
+    <div class="stat ok"><div class="num">${ok}</div><div class="lbl">Live & OK</div></div>
+    <div class="stat warn"><div class="num">${warn}</div><div class="lbl">Needs attention</div></div>
+    <div class="stat pending"><div class="num">${pending}</div><div class="lbl">Not checked</div></div>`;
+}
+function render() {
+  renderSummary();
+  const items = filtered();
+  const grouped = {};
+  items.forEach(p => {
+    const key = p.mp + '||' + p.cat;
+    if (!grouped[key]) grouped[key] = { mp: p.mp, cat: p.cat, items: [] };
+    grouped[key].items.push(p);
+  });
+  const main = document.getElementById('main');
+  if (!Object.keys(grouped).length) { main.innerHTML = '<p style="color:#9ca3af;padding:2rem 0;">No products match your filters.</p>'; return; }
+  main.innerHTML = Object.values(grouped).map(group => {
+    const { flag } = MARKETPLACES[group.mp];
+    const rows = group.items.map(p => {
+      const k = getKey(p);
+      const st = getStatus(p);
+      const chk = checks[k] || {};
+      const url = amazonUrl(p.asin, p.mp);
+      const isWarn = p.note && p.note.includes('⚠️');
+      const liveVal = chk.livePrice || '';
+      const matchClass = liveVal ? (liveVal === p.deal ? 'match' : 'mismatch') : '';
+      const statusLabel = { ok:'Live & matching', warn:'Needs attention', pending:'Not checked' }[st] || 'Not checked';
+      return `<tr class="${isWarn ? 'highlighted' : ''}">
+        <td><div class="product-name">${p.name}</div>${p.note ? `<div style="margin-top:3px"><span class="note-tag">${p.note}</span></div>` : ''}</td>
+        <td><span class="asin">${p.asin}</span></td>
+        <td><span class="price deal-price">${p.deal}</span></td>
+        <td><span class="price max-price">${p.max}</span></td>
+        <td><input class="price-input ${matchClass}" type="text" placeholder="Enter live price" value="${liveVal}" onchange="updateLive('${k}', this.value, '${p.deal}')" title="Enter the price shown on Amazon right now"></td>
+        <td><div class="status-cell"><div class="dot ${st}"></div><span class="status-text ${st}">${statusLabel}</span>${chk.ts ? `<span class="timestamp"> ${chk.ts}</span>` : ''}</div></td>
+        <td><div class="action-btns">
+          <a class="open-link" href="${url}" target="_blank">Amazon <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1h4v4M11 1L5 7M2 3H1v8h8v-1"/></svg></a>
+          <button class="check-btn" onclick="markStatus('${k}','ok','${p.deal}')">✓ OK</button>
+          <button class="check-btn" style="color:#ef4444" onclick="markStatus('${k}','warn','')">⚠ Flag</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+    return `<div class="marketplace-section">
+      <div class="mp-header"><h2>${flag} ${group.mp} — ${group.cat}</h2><span class="mp-badge">${group.items.length} products</span></div>
+      <table>
+        <thead><tr><th>Product</th><th>ASIN</th><th>Deal price</th><th>Max deal price</th><th>Live price (enter manually)</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }).join('');
+}
+function updateLive(k, val, dealPrice) {
+  const existing = checks[k] || {};
+  const match = val.trim() === dealPrice.trim();
+  checks[k] = { ...existing, livePrice: val.trim(), status: match ? 'ok' : (val ? 'warn' : existing.status || 'pending'), ts: new Date().toLocaleTimeString() };
+  saveChecks(); render();
+}
+function exportCSV() {
+  const rows = [['Marketplace','Category','Product','ASIN','Deal Price','Max Deal Price','Live Price Observed','Status','Checked At','Notes']];
+  PRODUCTS.forEach(p => {
+    const c = checks[getKey(p)] || {};
+    rows.push([p.mp, p.cat, p.name, p.asin, p.deal, p.max, c.livePrice||'', c.status||'not checked', c.ts||'', p.note]);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `PrimeDay_Monitor_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+render();
+updateLastUpdated();
+</script>
+</body>
+</html>
