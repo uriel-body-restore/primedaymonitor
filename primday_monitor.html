@@ -66,10 +66,12 @@
 </style>
 </head>
 <body>
+
 <header>
-  <h1>Body Restore — Prime Day Deal Monitor <span class="updated-badge">Updated Jun 16, 2026</span></h1>
+  <h1>Body Restore — Prime Day Deal Monitor <span class="updated-badge">Updated Jun 23, 2026</span></h1>
   <span class="badge">Jun 23–26, 2026</span>
 </header>
+
 <div class="toolbar">
   <label>Marketplace:</label>
   <select id="mp-filter" onchange="render()">
@@ -91,9 +93,11 @@
   <button class="btn" onclick="resetAll()">Reset all checks</button>
   <button class="btn primary" onclick="exportCSV()">Export log</button>
 </div>
+
 <div class="summary-bar" id="summary-bar"></div>
 <div class="last-updated" id="last-updated"></div>
 <div class="main" id="main"></div>
+
 <script>
 const MARKETPLACES = {
   US: { flag: '🇺🇸', domain: 'amazon.com' },
@@ -101,66 +105,79 @@ const MARKETPLACES = {
   UK: { flag: '🇬🇧', domain: 'amazon.co.uk' },
   DE: { flag: '🇩🇪', domain: 'amazon.de' },
 };
+
 const PRODUCTS = [
-  { mp:'US', cat:'Korean Face Masks', name:'Collagen Face Mask - Anti-Aging 5 Pack', asin:'B0F2D2XSH6', deal:'$8.49', max:'$8.49', note:'' },
-  { mp:'US', cat:'Korean Face Masks', name:'Collagen Face Mask - Glow 5 Pack', asin:'B0F2CWDCHZ', deal:'$8.49', max:'$8.49', note:'' },
-  { mp:'US', cat:'Korean Face Masks', name:'Bakuchiol Toner Pads (Featured)', asin:'B0F2CWRGXF', deal:'$13.59', max:'$13.59', note:'' },
-  { mp:'US', cat:'Korean Face Masks', name:'Niacinamide Cooling Jelly Toner Pads', asin:'B0F2CWSFKP', deal:'$13.59', max:'$13.59', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Whipped Beef Tallow Balm - Lavender', asin:'B0F3DJLKRC', deal:'$13.59', max:'$13.59', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Peppermint', asin:'B0F6MC1DS7', deal:'$11.89', max:'$11.89', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Manuka Honey', asin:'B0F6MCF63Y', deal:'$11.89', max:'$11.89', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Unscented', asin:'B0F6MSP8L8', deal:'$11.30', max:'$11.89', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Whipped Beef Tallow Balm - Eucalyptus (Featured)', asin:'B0F2CWB595', deal:'$8.07', max:'$8.49', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Whipped Beef Tallow Balm - Unscented', asin:'B0F2CSC7LG', deal:'$8.07', max:'$8.49', note:'' },
-  { mp:'US', cat:'Face Masks & Toner Pads', name:'Beef Tallow Lip Mask - Bergamot', asin:'B0F6MB9MTN', deal:'$11.89', max:'$11.89', note:'' },
-  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Green Tea', asin:'B0DM3MM57G', deal:'$8.47', max:'$8.47', note:'' },
-  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Lavender', asin:'B0DM3B9F16', deal:'$8.47', max:'$8.47', note:'' },
-  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Unscented', asin:'B0DM3GPV9P', deal:'$8.47', max:'$8.47', note:'' },
-  { mp:'US', cat:'Eye Masks', name:'Eye Mask 30 Pack - Variety (Featured)', asin:'B0DM4222MV', deal:'$25.49', max:'$25.49', note:'' },
-  { mp:'US', cat:'Eye Masks', name:'Eye Mask 5 Pack - Variety', asin:'B0DM2PZT88', deal:'$8.49', max:'$8.49', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Citrus', asin:'B689VN6FMS', deal:'$20.17', max:'$23.74', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Bloom', asin:'B0BJYCRSS1', deal:'$13.71', max:'$14.44', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Tea Tree', asin:'B68S6WZGCW', deal:'$21.24', max:'$21.24', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B68FDCLXNP', deal:'$19.93', max:'$20.99', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'$22.55', max:'$23.74', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Citrus (Men)', asin:'B68XBEN8DL', deal:'$13.71', max:'$14.44', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 30 Pack - Collectors Box', asin:'B68S6XG2GB', deal:'$47.63', max:'$50.14', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Rose', asin:'B68S79VN13', deal:'$21.24', max:'$21.24', note:'' },
-  { mp:'US', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Clarity', asin:'B68JXRWWHX', deal:'$11.88', max:'$11.88', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Citrus', asin:'B089VN6FMS', deal:'CA$27.39', max:'CA$27.39', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B08BC88KG1', deal:'CA$27.39', max:'CA$27.39', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B08FDCLXNP', deal:'CA$27.39', max:'CA$27.39', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Tea Tree', asin:'B08S6WZGCW', deal:'CA$27.39', max:'CA$27.39', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 30 Pack - Collectors Box', asin:'B08S6XG2GB', deal:'CA$61.59', max:'CA$61.59', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Rose', asin:'B08S79VN13', deal:'CA$27.39', max:'CA$27.39', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Clarity', asin:'B0BJXRWWHX', deal:'CA$17.59', max:'CA$17.59', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Bloom', asin:'B0BJYCRS51', deal:'CA$17.99', max:'CA$17.99', note:'' },
-  { mp:'CA', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Citrus (Men)', asin:'B0BXBBN8DL', deal:'CA$15.83', max:'CA$15.83', note:'' },
-  { mp:'UK', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B68FDCLX9P', deal:'£16.99', max:'£16.99', note:'' },
-  { mp:'UK', cat:'Shower Steamers', name:'Shower Steamers 30 Pack - Collectors Box', asin:'B68S6XG2GB', deal:'£42.49', max:'£42.49', note:'' },
-  { mp:'UK', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'£14.38', max:'£14.95', note:'' },
-  { mp:'DE', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Lavender', asin:'B68FDCLXNP', deal:'€15.29', max:'€15.29', note:'' },
-  { mp:'DE', cat:'Shower Steamers', name:'Shower Steamers 6 Pack - Citrus', asin:'B68XBEN8DL', deal:'€8.49', max:'€9.99', note:'⚠️ Inactive SKU' },
-  { mp:'DE', cat:'Shower Steamers', name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'€15.29', max:'€15.29', note:'' },
+  // US - Korean Face Masks
+  { mp:'US', cat:'Korean Face Masks',        name:'Collagen Face Mask - Anti-Aging 5 Pack',          asin:'B0F2D2XSH6', deal:'$8.49',  max:'$8.49',    note:'' },
+  { mp:'US', cat:'Korean Face Masks',        name:'Collagen Face Mask - Glow 5 Pack',                asin:'B0F2CWDCHZ', deal:'$8.49',  max:'$8.49',    note:'' },
+  { mp:'US', cat:'Korean Face Masks',        name:'Bakuchiol Toner Pads (Featured)',                 asin:'B0F2CWRGXF', deal:'$13.59', max:'$13.59',   note:'' },
+  { mp:'US', cat:'Korean Face Masks',        name:'Niacinamide Cooling Jelly Toner Pads',            asin:'B0F2CWSFKP', deal:'$13.59', max:'$13.59',   note:'' },
+  // US - Face Masks & Toner Pads
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Whipped Beef Tallow Balm - Lavender',             asin:'B0F3DJLKRC', deal:'$13.59', max:'$19.99',   note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Beef Tallow Lip Mask - Peppermint',               asin:'B0F6MC1DS7', deal:'$11.89', max:'$13.99',   note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Beef Tallow Lip Mask - Manuka Honey',             asin:'B0F6MCF63Y', deal:'$11.89', max:'$13.99',   note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Beef Tallow Lip Mask - Unscented',                asin:'B0F6MSP8L8', deal:'$11.30', max:'$13.99',   note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Whipped Beef Tallow Balm - Eucalyptus (Featured)',asin:'B0F2CWB595', deal:'$8.07',  max:'$19.99',    note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Whipped Beef Tallow Balm - Unscented',            asin:'B0F2CSC7LG', deal:'$8.07',  max:'$19.99',    note:'' },
+  { mp:'US', cat:'Face Masks & Toner Pads',  name:'Beef Tallow Lip Mask - Bergamot',                 asin:'B0F6MB9MTN', deal:'$11.89', max:'$13.99',   note:'' },
+  // US - Eye Masks
+  { mp:'US', cat:'Eye Masks',                name:'Eye Mask 5 Pack - Green Tea',                     asin:'B0DM3MM57G', deal:'$8.47',  max:'$9.97',    note:'' },
+  { mp:'US', cat:'Eye Masks',                name:'Eye Mask 5 Pack - Lavender',                      asin:'B0DM3B9F16', deal:'$8.47',  max:'$9.97',    note:'' },
+  { mp:'US', cat:'Eye Masks',                name:'Eye Mask 5 Pack - Unscented',                     asin:'B0DM3GPV9P', deal:'$8.47',  max:'$9.97',    note:'' },
+  { mp:'US', cat:'Eye Masks',                name:'Eye Mask 30 Pack - Variety (Featured)',            asin:'B0DM4222MV', deal:'$25.49', max:'$29.99',   note:'' },
+  { mp:'US', cat:'Eye Masks',                name:'Eye Mask 5 Pack - Variety',                       asin:'B0DM2PZT88', deal:'$8.49',  max:'$9.99',    note:'' },
+  // US - Shower Steamers
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Citrus',                asin:'B689VN6FMS', deal:'$20.17', max:'$23.74',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Bloom',                  asin:'B0BJYCRSS1', deal:'$13.71', max:'$16.99',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Tea Tree',              asin:'B68S6WZGCW', deal:'$21.24', max:'$21.24',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Lavender',              asin:'B68FDCLXNP', deal:'$19.93', max:'$20.99',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'$22.55', max:'$23.74',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Citrus (Men)',           asin:'B68XBEN8DL', deal:'$13.71', max:'$14.44',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 30 Pack - Collectors Box',        asin:'B68S6XG2GB', deal:'$47.63', max:'$50.14',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Rose',                  asin:'B68S79VN13', deal:'$21.24', max:'$21.24',   note:'' },
+  { mp:'US', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Clarity',                asin:'B68JXRWWHX', deal:'$11.88', max:'$11.88',   note:'' },
+  // CA - Shower Steamers
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Citrus',                asin:'B089VN6FMS', deal:'CA$26.02', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B08BC88KG1', deal:'CA$26.02', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Lavender',              asin:'B08FDCLXNP', deal:'CA$27.39', max:'CA$30.82', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Tea Tree',              asin:'B08S6WZGCW', deal:'CA$26.02', max:'CA$27.39', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 30 Pack - Collectors Box',        asin:'B08S6XG2GB', deal:'CA$59.84', max:'CA$62.99', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Rose',                  asin:'B08S79VN13', deal:'CA$27.39', max:'CA$29.69', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Clarity',                asin:'B0BJXRWWHX', deal:'CA$17.09', max:'CA$17.99', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Bloom',                  asin:'B0BJYCRS51', deal:'CA$17.09', max:'CA$17.99', note:'' },
+  { mp:'CA', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Citrus (Men)',           asin:'B0BXBBN8DL', deal:'CA$15.38', max:'CA$16.19', note:'' },
+  // UK - Shower Steamers
+  { mp:'UK', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Lavender',              asin:'B68FDCLX9P', deal:'£16.99', max:'£19.99',   note:'' },
+  { mp:'UK', cat:'Shower Steamers',          name:'Shower Steamers 30 Pack - Collectors Box',        asin:'B68S6XG2GB', deal:'£42.49', max:'£49.99',   note:'' },
+  { mp:'UK', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'£13.96', max:'£16.38',   note:'' },
+  // DE - Shower Steamers
+  { mp:'DE', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Lavender',              asin:'B68FDCLXNP', deal:'€13.76', max:'€13.76',   note:'' },
+  { mp:'DE', cat:'Shower Steamers',          name:'Shower Steamers 6 Pack - Citrus',                 asin:'B68XBEN8DL', deal:'€8.49',  max:'€9.99',    note:'⚠️ Inactive SKU' },
+  { mp:'DE', cat:'Shower Steamers',          name:'Shower Steamers 15 Pack - Eucalyptus (Featured)', asin:'B68BC88KG1', deal:'€13.76', max:'€13.76',   note:'' },
 ];
+
 let checks = {};
 try { checks = JSON.parse(localStorage.getItem('pd_checks_v2') || '{}'); } catch(e) {}
 function saveChecks() { try { localStorage.setItem('pd_checks_v2', JSON.stringify(checks)); } catch(e) {} }
 function getKey(p) { return p.mp + '_' + p.asin; }
 function getStatus(p) { const k = getKey(p); return checks[k] ? checks[k].status : 'pending'; }
 function amazonUrl(asin, mp) { return `https://www.${MARKETPLACES[mp].domain}/dp/${asin}`; }
+
 function markStatus(key, status, livePrice) {
   checks[key] = { status, livePrice: livePrice || '', ts: new Date().toLocaleTimeString() };
   saveChecks(); render(); updateLastUpdated();
 }
+
 function updateLastUpdated() {
   const el = document.getElementById('last-updated');
   const any = Object.values(checks).filter(c => c.ts);
   if (any.length) el.textContent = 'Last check logged at ' + any[any.length-1].ts;
 }
+
 function resetAll() {
   if (confirm('Reset all check statuses?')) { checks = {}; saveChecks(); render(); }
 }
+
 function filtered() {
   const mp = document.getElementById('mp-filter').value;
   const st = document.getElementById('status-filter').value;
@@ -172,6 +189,7 @@ function filtered() {
     return true;
   });
 }
+
 function renderSummary() {
   const total = PRODUCTS.length;
   const ok = PRODUCTS.filter(p => getStatus(p) === 'ok').length;
@@ -183,6 +201,7 @@ function renderSummary() {
     <div class="stat warn"><div class="num">${warn}</div><div class="lbl">Needs attention</div></div>
     <div class="stat pending"><div class="num">${pending}</div><div class="lbl">Not checked</div></div>`;
 }
+
 function render() {
   renderSummary();
   const items = filtered();
@@ -192,8 +211,10 @@ function render() {
     if (!grouped[key]) grouped[key] = { mp: p.mp, cat: p.cat, items: [] };
     grouped[key].items.push(p);
   });
+
   const main = document.getElementById('main');
   if (!Object.keys(grouped).length) { main.innerHTML = '<p style="color:#9ca3af;padding:2rem 0;">No products match your filters.</p>'; return; }
+
   main.innerHTML = Object.values(grouped).map(group => {
     const { flag } = MARKETPLACES[group.mp];
     const rows = group.items.map(p => {
@@ -227,12 +248,14 @@ function render() {
       </table></div>`;
   }).join('');
 }
+
 function updateLive(k, val, dealPrice) {
   const existing = checks[k] || {};
   const match = val.trim() === dealPrice.trim();
   checks[k] = { ...existing, livePrice: val.trim(), status: match ? 'ok' : (val ? 'warn' : existing.status || 'pending'), ts: new Date().toLocaleTimeString() };
   saveChecks(); render();
 }
+
 function exportCSV() {
   const rows = [['Marketplace','Category','Product','ASIN','Deal Price','Max Deal Price','Live Price Observed','Status','Checked At','Notes']];
   PRODUCTS.forEach(p => {
@@ -245,6 +268,7 @@ function exportCSV() {
   a.download = `PrimeDay_Monitor_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
+
 render();
 updateLastUpdated();
 </script>
